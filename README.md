@@ -1,4 +1,4 @@
-# homebrew-oponite
+# homebrew-nitebrews
 
 Homebrew tap for my builds.
 
