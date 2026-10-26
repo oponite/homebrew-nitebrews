@@ -5,7 +5,7 @@ class LanaAT200 < Formula
   sha256 "1f386a338a891bcf3eb0d24182e173a6bd645dd8d284b55f129724dc0ae496e6"
   license "Apache-2.0"
 
-  keg_only :versioned_formula
+  keg_only "exact releases must not replace the default lana command"
 
   depends_on "cmake" => :build
 

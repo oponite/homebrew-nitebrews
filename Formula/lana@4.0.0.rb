@@ -5,7 +5,7 @@ class LanaAT400 < Formula
   sha256 "9dbe5f76f6a971c4065d157b5f3e4ec9bdd5c3292583f729bd9a34f61663c4d5"
   license "Apache-2.0"
 
-  keg_only :versioned_formula
+  keg_only "exact releases must not replace the default lana command"
 
   depends_on "python@3.14" => :build
   depends_on "rust" => :build
