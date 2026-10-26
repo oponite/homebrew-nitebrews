@@ -11,13 +11,13 @@ Homebrew tap for my builds.
 Add the tap once:
 
 ```bash
-brew tap oponite/oponite
+brew tap oponite/nitebrews
 ```
 
 Then install whichever you need: 
 
 ```bash
-brew trust --formula oponite/oponite/lana
-brew install oponite/oponite/lana
+brew trust --formula oponite/nitebrews/lana
+brew install oponite/nitebrews/lana
 brew install pls
 ```
