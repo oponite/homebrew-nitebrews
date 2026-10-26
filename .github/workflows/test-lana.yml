@@ -36,11 +36,32 @@ jobs:
         run: |
           gh api repos/oponite/lana/releases --paginate > "$RUNNER_TEMP/releases.json"
           python3 - <<'PY'
-          import json, os, pathlib, re
+          import json, os, pathlib, re, subprocess, urllib.request
           releases = json.loads(pathlib.Path(os.environ["RUNNER_TEMP"], "releases.json").read_text())
           public = {r["tag_name"][1:] for r in releases if not r["draft"] and not r["prerelease"] and re.fullmatch(r"v\d+\.\d+\.\d+", r["tag_name"])}
           formulas = {p.stem.removeprefix("lana@") for p in pathlib.Path("Formula").glob("lana@*.rb")}
           assert formulas == public, ("formula/public release mismatch", formulas ^ public)
+          for release in releases:
+              version = release["tag_name"].removeprefix("v")
+              if version not in formulas:
+                  continue
+              text = pathlib.Path("Formula", f"lana@{version}.rb").read_text()
+              url = re.search(r'^  url "([^"]+)"$', text, re.M).group(1)
+              digest = re.search(r'^  sha256 "([0-9a-f]{64})"$', text, re.M).group(1)
+              assets = {asset["name"]: asset["browser_download_url"] for asset in release["assets"]}
+              if version == "1.0.0":
+                  ref = json.loads(subprocess.check_output(["gh", "api", "repos/oponite/lana/git/ref/tags/v1.0.0"]))["object"]
+                  while ref["type"] == "tag":
+                      ref = json.loads(subprocess.check_output(["gh", "api", "repos/oponite/lana/git/tags/" + ref["sha"]]))["object"]
+                  assert ref["type"] == "commit"
+                  assert url == "https://github.com/oponite/lana/archive/" + ref["sha"] + ".tar.gz"
+                  assert '  version "1.0.0"' in text
+              else:
+                  name = f"lana-{version}-source.tar.gz"
+                  assert url == assets[name]
+                  with urllib.request.urlopen(assets["SHA256SUMS"]) as response:
+                      checksums = response.read().decode().splitlines()
+                  assert [line.split()[0] for line in checksums if line.split()[-1].lstrip("*") == name] == [digest]
           latest = max(public, key=lambda version: tuple(map(int, version.split("."))))
           assert f"/v{latest}/lana-{latest}-source.tar.gz" in pathlib.Path("Formula/lana.rb").read_text()
           PY

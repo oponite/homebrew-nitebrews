@@ -35,7 +35,7 @@ Updating the tap does not automatically upgrade installed packages.
 
 ## Exact versions
 
-Available public releases: **1.0.0, 1.1.0, 1.1.1, 2.0.0, 2.0.1, 2.1.0,
+Backfilled public releases: **1.0.0, 1.1.0, 1.1.1, 2.0.0, 2.0.1, 2.1.0,
 3.0.0, 3.0.1, 4.0.0, 4.1.0**. Each future public stable release also receives
 an exact-version formula. List available formulas with:
 
