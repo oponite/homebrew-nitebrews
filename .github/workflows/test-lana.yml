@@ -1,0 +1,69 @@
+name: Test public Lana formulas
+
+on:
+  push:
+    branches: [main, codex/lana-history]
+    paths: ["Formula/lana*.rb", ".github/workflows/test-lana.yml"]
+  pull_request:
+    paths: ["Formula/lana*.rb", ".github/workflows/test-lana.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    name: Source install (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: Homebrew/actions/setup-homebrew@d482da0e602890d3160aade42e72c8556103bf04
+        with:
+          stable: true
+      - name: Admit only published stable release versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/oponite/lana/releases --paginate > "$RUNNER_TEMP/releases.json"
+          python3 - <<'PY'
+          import json, os, pathlib, re
+          releases = json.loads(pathlib.Path(os.environ["RUNNER_TEMP"], "releases.json").read_text())
+          public = {r["tag_name"][1:] for r in releases if not r["draft"] and not r["prerelease"] and re.fullmatch(r"v\d+\.\d+\.\d+", r["tag_name"])}
+          formulas = {p.stem.removeprefix("lana@") for p in pathlib.Path("Formula").glob("lana@*.rb")}
+          assert formulas == public, ("formula/public release mismatch", formulas ^ public)
+          latest = max(public, key=lambda version: tuple(map(int, version.split("."))))
+          assert f"/v{latest}/lana-{latest}-source.tar.gz" in pathlib.Path("Formula/lana.rb").read_text()
+          PY
+      - name: Audit and test every exact staged formula
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in Formula/lana*.rb; do
+            formula="$(basename "$file" .rb)"
+            full="oponite/nitebrews/$formula"
+            cmp "$file" "$(brew --repo oponite/nitebrews)/Formula/$formula.rb"
+            brew trust --formula "$full"
+            brew audit --strict --formula "$full"
+            brew install --build-from-source "$full"
+            brew test "$full"
+            cli="$(brew --prefix "$full")/bin/lana"
+            "$cli" version
+            project="$RUNNER_TEMP/project-$formula"
+            "$cli" new "$project"
+            (cd "$project" && "$cli" build && "$cli" run && "$cli" test)
+            if [[ "$formula" == lana ]]; then
+              default_version="$(lana version)"
+            else
+              test "$(lana version)" = "$default_version"
+            fi
+          done
