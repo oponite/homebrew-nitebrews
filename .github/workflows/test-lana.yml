@@ -38,7 +38,7 @@ jobs:
           python3 - <<'PY'
           import json, os, pathlib, re, urllib.request
           releases = json.loads(pathlib.Path(os.environ["RUNNER_TEMP"], "releases.json").read_text())
-          public = {r["tag_name"][1:] for r in releases if r["tag_name"] != "v1.0.0" and not r["draft"] and not r["prerelease"] and re.fullmatch(r"v\d+\.\d+\.\d+", r["tag_name"])}
+          public = {r["tag_name"][1:] for r in releases if not r["draft"] and not r["prerelease"] and re.fullmatch(r"v\d+\.\d+\.\d+", r["tag_name"]) and int(r["tag_name"][1:].split(".")[0]) >= 2}
           formulas = {p.stem.removeprefix("lana@") for p in pathlib.Path("Formula").glob("lana@*.rb")}
           assert formulas == public, ("formula/public release mismatch", formulas ^ public)
           for release in releases:

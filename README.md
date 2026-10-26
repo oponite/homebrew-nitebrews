@@ -35,8 +35,8 @@ Updating the tap does not automatically upgrade installed packages.
 
 ## Exact versions
 
-Backfilled public releases: **1.1.0, 1.1.1, 2.0.0, 2.0.1, 2.1.0,
-3.0.0, 3.0.1, 4.0.0, 4.1.0**. Each future public stable release also receives
+Backfilled public releases: **2.0.0, 2.0.1, 2.1.0, 3.0.0, 3.0.1, 4.0.0,
+4.1.0**. Each future public stable release also receives
 an exact-version formula. List available formulas with:
 
 ```sh
@@ -54,7 +54,7 @@ retain their original language behavior and bugs; availability is not a promise
 of ongoing fixes for those releases.
 
 Sources come from the public GitHub releases and are checked with SHA-256.
-Lana 1.0.0 is excluded. Historical formula packaging fixes preserve the released
+All Lana 1.x releases are excluded. Historical formula packaging fixes preserve the released
 language source.
 
 ## Previous tap name
