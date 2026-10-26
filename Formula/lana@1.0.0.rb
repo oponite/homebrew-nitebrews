@@ -11,6 +11,7 @@ class LanaAT100 < Formula
   depends_on "cmake" => :build
 
   def install
+    ENV.append "CFLAGS", "-D_GNU_SOURCE" if OS.linux?
     system "cmake", "-S", ".", "-B", "build", *std_cmake_args
     system "cmake", "--build", "build", "--target", "lana", "lanavm", "--parallel"
     system "cmake", "--install", "build"

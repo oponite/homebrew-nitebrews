@@ -69,7 +69,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in Formula/lana*.rb; do
+          for file in Formula/lana@*.rb Formula/lana.rb; do
             formula="$(basename "$file" .rb)"
             full="oponite/nitebrews/$formula"
             cmp "$file" "$(brew --repo oponite/nitebrews)/Formula/$formula.rb"
@@ -82,9 +82,9 @@ jobs:
             project="$RUNNER_TEMP/project-$formula"
             "$cli" new "$project"
             (cd "$project" && "$cli" build && "$cli" run && "$cli" test)
-            if [[ "$formula" == lana ]]; then
-              default_version="$(lana version)"
-            else
-              test "$(lana version)" = "$default_version"
-            fi
+          done
+          test "$(command -v lana)" = "$(brew --prefix)/bin/lana"
+          for file in Formula/lana@*.rb; do
+            formula="$(basename "$file" .rb)"
+            "$(brew --prefix "oponite/nitebrews/$formula")/bin/lana" version | grep -F "Lana ${formula#lana@} ("
           done
